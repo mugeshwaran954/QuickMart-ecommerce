@@ -1,0 +1,84 @@
+<html>
+    <head>
+        <title>Search</title>
+        <link rel="stylesheet" href="cat.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="temp.js"></script>
+        <script>
+            $(document).ready(() => {
+    function fetchSearchResults() {
+        let searchParams = new URLSearchParams(window.location.search);
+        let query = searchParams.get("q");
+
+        if (!query) {
+            $(".products").html("<p>No search query provided</p>");
+            return;
+        }
+
+        $(".products").html("<p>Searching...</p>");
+
+        $.get(`/products?search=${encodeURIComponent(query)}`, (products) => {
+            $(".products").empty();
+
+            if (products.length === 0) {
+                $(".products").html(`<p>No results found for '${query}'</p>`);
+                return;
+            }
+
+            products.forEach((prod) => {
+                let discount = Math.round(((prod.price - prod.current_price) / prod.price) * 100);
+                let productHTML = `
+                <div class="product-box" data-product-id="${prod._id}">
+                    <img src="images/${prod.image_url}" class="prod">
+                    <p>${prod.name}<br>
+                        <s>₹${prod.price}</s>&nbsp;&nbsp;
+                        <span class="disc">${discount}% OFF</span><br>
+                        ₹<span class="current-price">${prod.current_price}</span>
+                    </p>
+                    <button class="atc">Add to cart</button>
+                </div>`;
+
+                $(".products").append(productHTML);
+            });
+        }).fail((err) => {
+            console.error("Error fetching search results:", err);
+            $(".products").html("<p>Error fetching search results</p>");
+        });
+    }
+
+    fetchSearchResults();
+});
+        </script>
+    </head>
+    <body>
+        <div><nav class="topnav">
+            <div class="logo">QuickMart</div>
+            <input type="text" id="loc" placeholder="Enter Pincode" maxlength="6">
+            <a class="NavLogo" href="homepg.html">🏠Home</span></a>
+            <input type="text" id="search-bar" placeholder="Search QuickMart" onkeyup="redirectToSearch(event)">
+            <div class="user">
+                <a class="NavLogo" href="login2.html">Login👤</a>
+            </div>
+            <div class="cart">
+                <a class="NavLogo" href="cart2.html">Cart🛒<i class="shopping-cart"></i> <span id="cart-count"></span></a></button>
+            </div>
+            <div class="nav3" id="menu-toggle">☰</div>
+        </nav>
+        <div id="sidebar">
+            <a href="profile.html" class="sidebar-link">My Profile</a>
+            <a href="myorders.html" class="sidebar-link">My Orders</a>
+            <a href="#" class="sidebar-link" id="logout">Logout</a>
+        </div>
+        </div>
+        <div class="categories-nav">
+            <a href="fruits.html">Fruits & Vegetables</a>
+            <a href="home.html">Home & Kitchen</a>
+            <a href="packaged.html">Packaged Foods</a>
+            <a href="personalcare.html">Personal Care</a>
+        </div>
+        <div class="products">
+            
+        </div>
+    </div>
+</body>
+</html>

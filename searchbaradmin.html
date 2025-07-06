@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search</title>
+    <link rel="stylesheet" href="cat.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      function redirectToSearch(event) {
+    if (event.key === "Enter") {
+        console.log("Enter pressed");
+        const query = document.getElementById("search-bar").value.trim();
+        if (query !== "") {
+            window.location.href = `searchbaradmin.html?q=${encodeURIComponent(query)}`;
+        }
+    }
+}
+
+
+$(document).ready(() => {
+    function fetchSearchResults() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const query = searchParams.get("q");
+
+        if (!query) {
+            $("#productList").html("<p>No search query provided</p>");
+            return;
+        }
+
+        let subcategoryFilter = [];
+
+        if ($("#all-products").prop("checked")) {
+            subcategoryFilter = [];
+        } else {
+            $(".category:checked").each(function () {
+                let subcat = $(this).val().trim();
+                if (subcat) subcategoryFilter.push(encodeURIComponent(subcat));
+            });
+        }
+
+        let queryParams = [`search=${encodeURIComponent(query)}`];
+        if (subcategoryFilter.length > 0) {
+            queryParams.push(`subcategories=${subcategoryFilter.join(",")}`);
+        }
+
+        const fullQuery = `?${queryParams.join("&")}`;
+
+        $("#productList").html("<p>Searching...</p>");
+
+        $.get(`/products${fullQuery}`, (products) => {
+            $("#productList").empty();
+
+            if (!products || products.length === 0) {
+                $("#productList").html(`<p>No results found for '${query}'</p>`);
+                return;
+            }
+
+            products.forEach((product) => {
+                let productHTML = `
+                    <div class="product-box" data-id="${product._id}" data-category="${product.subcat}" data-price="${product.price}">
+                        <img src="http://localhost:7000/images/${product.image_url}" class="prod">
+                        <input type="text" class="product-name" value="${product.name}" disabled>
+                        <p>Description: <textarea class="desc-input" disabled>${product.description || 'No description'}</textarea></p>
+                        <p>Price: ₹<input type="number" class="price-input" value="${product.price}" disabled></p>
+                        <p>Current Price: ₹<input type="number" class="current-price-input" value="${product.current_price}" disabled></p>
+                        <p>Stock: <input type="number" class="stock-input" value="${product.stock_quantity}" disabled></p>
+                        <button class="update">Update</button>
+                    </div>
+                `;
+                $("#productList").append(productHTML);
+            });
+        }).fail((err) => {
+            console.error("Error fetching search results:", err);
+            $("#productList").html("<p>Error fetching search results</p>");
+        });
+    }
+
+    // Filter handling
+    $("#all-products").change(function () {
+        if ($(this).prop("checked")) {
+            $(".category").prop("checked", false);
+        }
+        fetchSearchResults();
+    });
+
+    $(".category").change(function () {
+        if ($(".category:checked").length > 0) {
+            $("#all-products").prop("checked", false);
+        } else {
+            $("#all-products").prop("checked", true);
+        }
+        fetchSearchResults();
+    });
+
+    fetchSearchResults();
+});
+
+        
+
+    </script>
+</head>
+<body>
+    <nav class="topnav">
+        <div class="logo">QuickMart</div>
+        <input type="text" id="loc" placeholder="Enter Pincode" maxlength="6">
+        <a class="NavLogo" href="homepg.html">🏠Home</a>
+        <input type="text" id="search-bar" placeholder="Search QuickMart" onkeyup="redirectToSearch(event)">
+        <div class="user">
+            <a class="NavLogo" href="login.html">Login👤</a>
+        </div>
+        <div class="cart">
+            <a class="NavLogo" href="cart.html">Cart🛒 <span id="cart-count"></span></a>
+        </div>
+        <div class="nav3" id="menu-toggle">☰</div>
+
+    </nav>
+
+    <div class="categories-nav">
+        <a href="f&vadmin.html">Fruits & Vegetables</a>
+        <a href="home&kitchenadmin.html">Home & Kitchen</a>
+        <a href="packagedfoodsadmin.html">Packaged Foods</a>
+        <a href="personalcareadmin.html">Personal Care</a>
+    </div>
+
+        <div class="products" id="productList">
+        </div>
+    </div>
+</body>
+</html>

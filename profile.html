@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View & Edit Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 400px;
+            height: 520px;
+            border: 1px solid black;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input, textarea {
+            width: 80%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 0px;
+            font-size: 14px;
+            resize: none;
+        }
+        textarea {
+            height: 60px;
+        }
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .edit-btn {
+            background-color: green;
+            color: white;
+        }
+        .save-btn {
+            background-color: blue;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: gray;
+            color: white;
+        }
+        .start-shopping {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>My Profile</h2>
+        <label>Name</label>
+        <input type="text" id="name" disabled>
+
+        <label>Phone Number</label>
+        <input type="text" id="phone" disabled>
+
+        <label>Address</label>
+        <textarea id="address" disabled></textarea>
+
+        <label>Email</label>
+        <input type="text" id="email" disabled>
+
+        <div class="btn-container">
+            <button class="edit-btn" onclick="enableEdit()">Edit Profile</button>
+            <button class="save-btn" onclick="saveChanges()" style="display: none;">Save Changes</button>
+            <button class="cancel-btn" onclick="cancelEdit()" style="display: none;">Cancel</button>
+            <a href="homepg.html" class="start-shopping">Back to Home</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        let originalValues = {};
+
+        $(document).ready(function () {
+            $.get('/profile', function (data) {
+                $('#name').val(data.name);
+                $('#phone').val(data.phone);
+                $('#address').val(data.address);
+                $('#email').val(data.email);
+
+                originalValues = {
+                    name: data.name,
+                    phone: data.phone,
+                    address: data.address
+                };
+            }).fail(function (err) {
+                alert("Failed to load profile.");
+                console.error(err);
+            });
+        });
+
+        function enableEdit() {
+            $('#name, #phone, #address').prop('disabled', false);
+            $('.edit-btn').hide();
+            $('.save-btn, .cancel-btn').show();
+        }
+
+        function cancelEdit() {
+            $('#name').val(originalValues.name);
+            $('#phone').val(originalValues.phone);
+            $('#address').val(originalValues.address);
+            $('#name, #phone, #address').prop('disabled', true);
+            $('.edit-btn').show();
+            $('.save-btn, .cancel-btn').hide();
+        }
+
+        function saveChanges() {
+    const name = $('#name').val().trim();
+    const phone = $('#phone').val().trim();
+    const address = $('#address').val().trim();
+
+    if (!name || !phone || !address) {
+        alert("All fields are required.");
+        return;
+    }
+
+    if (!/^[A-Z][a-zA-Z ]{1,49}$/.test(name)) {
+        alert("Name must start with a capital letter and be 2–50 alphabetic characters.");
+        return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+        alert("Phone must be 10 digits starting with 6, 7, 8 or 9.");
+        return;
+    }
+
+    if (!/^.+(,.+)*\s*Chennai-600[01]\d{2}$/.test(address)) {
+        alert("Address must end with Chennai-6000xx or 6001xx.");
+        return;
+    }
+
+    const updatedData = { name, phone, address };
+
+    $.post('/update-profile', updatedData, function (res) {
+        alert("Profile updated successfully!");
+        $('#name, #phone, #address').prop('disabled', true);
+        $('.edit-btn').show();
+        $('.save-btn, .cancel-btn').hide();
+
+        originalValues = { ...updatedData };
+    }).fail(function (err) {
+        alert("Failed to update profile.");
+        console.error(err);
+    });
+}
+
+    </script>
+</body>
+</html>

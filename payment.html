@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .message {
+            color: #d62828;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        button {
+            width: 100%;
+            margin-top: 30px;
+            padding: 12px;
+            font-size: 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        #card-type {
+            margin-top: 5px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Complete Your Payment</h2>
+    <p><strong>Order ID:</strong> <span id="order-id">Loading...</span></p>
+    <p><strong>Total Amount:</strong> Rs.<span id="total-amount">0</span></p>
+
+    <label for="payment-method">Payment Method:</label>
+    <select id="payment-method">
+        <option value="">-- Select Payment Method --</option>
+        <option value="Card">Card</option>
+        <option value="UPI">UPI</option>
+        <option value="Netbanking">Netbanking</option>
+        <option value="Cash on Delivery">Cash on Delivery</option>
+    </select>
+
+    <div id="card-details" style="display:none;">
+        <label>Card Number:</label>
+        <input type="text" id="card_number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX">
+        <div id="card-type"></div>
+        <div class="message" id="card-number-msg"></div>
+
+        <label>Name on Card:</label>
+        <input type="text" id="card_name" placeholder="Full Name">
+        <div class="message" id="card-name-msg"></div>
+
+        <label>CVV:</label>
+        <input type="password" id="cvv" maxlength="4" placeholder="CVV">
+        <div class="message" id="cvv-msg"></div>
+
+        <label>Expiry (MM/YY):</label>
+        <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
+        <div class="message" id="expiry-msg"></div>
+    </div>
+
+    <div id="upi-details" style="display:none;">
+        <label>Enter UPI ID:</label>
+        <input type="text" id="upi_id" placeholder="example@upi">
+        <div class="message" id="upi-msg"></div>
+    </div>
+
+    <div id="netbanking-details" style="display:none;">
+        <label>Select Bank:</label>
+        <select id="bank">
+            <option value="">-- Select Bank --</option>
+            <option>HDFC</option>
+            <option>SBI</option>
+            <option>ICICI</option>
+            <option>Indian Bank</option>
+            <option>Kotak Mahindra Bank</option>
+            <option>Axis Bank</option>
+            <option>Others</option>
+        </select>
+    </div>
+
+    <button id="pay-btn">Submit</button>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    let orderId = null, totalAmount = 0;
+
+    window.onload = async () => {
+        const res = await fetch("/get-latest-order");
+        const data = await res.json();
+        orderId = data.order_id;
+        totalAmount = data.total;
+        document.getElementById("order-id").textContent = orderId;
+        document.getElementById("total-amount").textContent = totalAmount;
+    };
+
+    document.getElementById("payment-method").addEventListener("change", () => {
+        const method = document.getElementById("payment-method").value;
+        document.getElementById("card-details").style.display = method === "Card" ? "block" : "none";
+        document.getElementById("upi-details").style.display = method === "UPI" ? "block" : "none";
+        document.getElementById("netbanking-details").style.display = method === "Netbanking" ? "block" : "none";
+        document.getElementById("message").textContent = "";
+    });
+
+    document.getElementById("card_number").addEventListener("input", function () {
+        const number = this.value.replace(/\s+/g, '');
+        const ct = document.getElementById("card-type");
+        let type = '';
+        if (/^4\d{12}(\d{3})?$/.test(number)) type = "Visa";
+        else if (/^5[1-5]\d{14}$/.test(number) || /^2(2[2-9]|[3-6]|7[01])\d{12}$/.test(number)) type = "MasterCard";
+        else if (/^6\d{15}$/.test(number)) type = "RuPay";
+        else if (/^3[47]\d{13}$/.test(number)) type = "AmEx";
+        else if (/^3(?:6|8)\d{12,14}$/.test(number)) type = "Diners Club";
+        else if (/^(50|5[6-9]|6\d)\d{10,17}$/.test(number)) type = "Maestro";
+        ct.textContent = type ? "Card Type: " + type : "";
+    });
+
+    document.getElementById("pay-btn").addEventListener("click", async () => {
+        const method = document.getElementById("payment-method").value;
+        if (!method) {
+            document.getElementById("message").textContent = "Please select a payment method.";
+            return;
+        }
+
+        let valid = true;
+
+        // Clear all messages
+        ["card-number-msg", "card-name-msg", "cvv-msg", "expiry-msg", "upi-msg", "message"].forEach(id => {
+            document.getElementById(id).textContent = "";
+        });
+
+        if (method === "Card") {
+            const number = document.getElementById("card_number").value.trim().replace(/\s+/g, '');
+            const name = document.getElementById("card_name").value.trim();
+            const cvv = document.getElementById("cvv").value.trim();
+            const expiry = document.getElementById("expiry").value.trim();
+
+            if (!/^\d{13,19}$/.test(number)) {
+                document.getElementById("card-number-msg").textContent = "Invalid card number.";
+                valid = false;
+            }
+            if (!/^[A-Za-z ]{2,50}$/.test(name)) {
+                document.getElementById("card-name-msg").textContent = "Invalid name.";
+                valid = false;
+            }
+            if (!/^\d{3,4}$/.test(cvv)) {
+                document.getElementById("cvv-msg").textContent = "Invalid CVV.";
+                valid = false;
+            }
+
+            if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                document.getElementById("expiry-msg").textContent = "Invalid expiry format (MM/YY).";
+                valid = false;
+            } else {
+                const [mm, yy] = expiry.split("/").map(x => parseInt(x));
+                const now = new Date();
+                const expMonth = mm;
+                const expYear = 2000 + yy;
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+                if (expYear < currentYear || (expYear === currentYear && expMonth <= currentMonth)) {
+                    document.getElementById("expiry-msg").textContent = "Card expired.";
+                    valid = false;
+                }
+            }
+        }
+
+        if (method === "UPI") {
+            const upi = document.getElementById("upi_id").value.trim();
+            if (!/^[\w.-]+@[\w]+$/.test(upi)) {
+                document.getElementById("upi-msg").textContent = "Invalid UPI ID.";
+                valid = false;
+            }
+        }
+
+        if (method === "Netbanking") {
+            const bank = document.getElementById("bank").value;
+            if (!bank) {
+                document.getElementById("message").textContent = "Please select your bank.";
+                valid = false;
+            }
+        }
+
+        if (!valid) return;
+
+        try {
+            const res = await fetch("/payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    payment_method: method,
+                    amount_paid: totalAmount,
+                    payment_status: "Success"
+                })
+            });
+            const data = await res.json();
+            alert("Order confirmed via " + method);
+            window.location.href = "homepg.html";
+        } catch (err) {
+            document.getElementById("message").textContent = "Payment failed.";
+        }
+    });
+</script>
+</body>
+</html>

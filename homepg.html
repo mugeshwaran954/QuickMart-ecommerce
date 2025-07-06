@@ -1,0 +1,60 @@
+<html>
+<head>
+    <title>QuickMart - Grocery Store</title>
+    <link rel="stylesheet" href="cat.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="temp.js"></script>
+
+</head>
+<body>
+
+    <nav class="topnav">
+        <div class="logo">QuickMart</div>
+        <input type="text" id="loc" placeholder="Enter Pincode" maxlength="6">
+        <a class="NavLogo" href="homepg.html">Home 🏠</a>
+        <input type="text" id="search-bar" placeholder="Search QuickMart" onkeyup="redirectToSearch(event)">
+        <div class="user">
+            <a class="NavLogo" href="login2.html">Login 👤</a>
+        </div>
+        <div class="cart">
+            <a class="NavLogo" href="cart2.html">Cart 🛒 <span id="cart-count"> </span></a>
+        </div>
+        <div class="nav3" id="menu-toggle">☰</div>
+    </nav>
+    <div id="sidebar">
+        <a href="profile.html" class="sidebar-link">My Profile</a>
+        <a href="myorders.html" class="sidebar-link">My Orders</a>
+        <a href="#" class="sidebar-link" id="logout">Logout</a>
+    </div>
+    <div class="categories-nav">
+        <a href="fruits.html">Fruits & Vegetables</a>
+        <a href="home.html">Home & Kitchen</a>
+        <a href="packaged.html">Packaged Foods</a>
+        <a href="personalcare.html">Personal Care</a>
+    </div>
+
+    <div class="banner"><img src="images/ig.jpg" ></div>
+
+    <div class="category-container">
+        <a href="fruits.html" class="category2">
+            <img src="images/temp8.jpg" alt="Fruits">
+        </a>
+        <a href="home.html" class="category2">
+            <img src="images/temp2.jpg" alt="Vegetables">
+        </a>
+        <a href="packaged.html" class="category2">
+            <img src="images/temp7.jpg" alt="Dairy Products">
+        </a>
+        <a href="PersonalCare.html" class="category2">
+            <img src="images/temp6.jpg" alt="Snacks">
+        </a>
+    </div>
+
+    <div class="footer">
+        <a href="aboutus.html">About Us</a>
+        <a href="contactus.html">Contact Us</a>
+        <a href="cancellation.html">Cancellation Policy</a>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .order-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .product-list {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 15px;
+        }
+
+        .product-details p {
+            margin: 4px 0;
+        }
+
+        .payment-type, .status {
+            margin-top: 10px;
+        }
+
+        .status.processing {
+            color: orange;
+        }
+
+        .status.shipped {
+            color: green;
+        }
+
+        .cancel-btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<h2>My Orders</h2>
+<div id="order-list"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    fetch("/myorders")
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message); 
+                return;
+            }
+            renderOrders(data.orders);
+        })
+        .catch(err => console.error("Error fetching orders:", err));
+});
+
+function renderOrders(orders) {
+    const container = document.getElementById("order-list");
+    container.innerHTML = ""; 
+
+    orders.forEach(order => {
+        const orderDiv = document.createElement("div");
+        orderDiv.className = "order-item";
+        orderDiv.id = `order-${order.order_id}`;
+
+        const statusClass = getStatusClass(order.status);
+        const disableCancel = (order.status === "shipped" || order.status === "delivered");
+
+        let html = `
+            <p><strong>Order ID:</strong> #${order.order_id}</p>
+        `;
+
+        order.items.forEach(item => {
+            html += `
+                <div class="product-list">
+                    <div class="product-details">
+                        <p><strong>${item.product_name}</strong></p>
+                        <p>Price: ₹${item.price} × ${item.quantity}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+            <p><strong>Total:</strong> ₹${order.total}</p>
+            <p class="status ${statusClass}"><strong>Status:</strong> ${order.status}</p>
+            <button class="cancel-btn" onclick="cancelOrder('${order.order_id}', this)" ${disableCancel ? "disabled" : ""}>Cancel Order</button>
+        `;
+
+        orderDiv.innerHTML = html;
+        container.appendChild(orderDiv);
+    });
+}
+
+function getStatusClass(status) {
+    if (status === "processing" || status === "placed") return "processing";
+    if (status === "shipped" || status === "delivered") return "shipped"; 
+    return "";
+}
+
+function cancelOrder(orderId, button) {
+    const confirmCancel = confirm("Are you sure you want to cancel this order?");
+    if (!confirmCancel) return;
+
+    fetch("/cancel-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success) {
+            document.getElementById(`order-${orderId}`).remove();
+        }
+    })
+    .catch(err => console.error("Cancel failed:", err));
+}
+</script>
+
+
+</body>
+</html>

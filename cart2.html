@@ -1,0 +1,283 @@
+<html>
+    <head>
+        <title>Cart</title>
+        <link rel="stylesheet" href="cat.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="temp.js"></script>
+        <style>
+            .cart-container {
+                display: flex;
+                justify-content: space-between;
+                width: 550px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                flex-direction:column;
+            }
+            .cart-item {
+                display: flex;
+                justify-content: flex-start;
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                height: 150px;
+                align-items: center;
+                width: 500px;
+            }
+
+            .cart-item img.prod {
+                width: 180px;
+                height: 150px;
+                margin-right: 20px;
+            }
+
+            .cart-item .item-details {
+                flex-grow: 1;
+            }
+
+            .item-details p {
+                margin: 5px 0;
+            }
+
+            .quantity-control {
+                margin-top: 10px;
+                display: flex;
+                align-items: center;
+            }
+
+            .quantity-control input {
+                width: 40px;
+                margin-left: 10px;
+            }
+
+            .delete-btn {
+                background: red;
+                color: white;
+                border: none;
+                cursor: pointer;
+                padding: 5px;
+                margin-top: 10px;
+            }
+            img{
+                width:170px;
+                height:150px;
+                border-radius:5px;
+            }
+            
+            .payment-details {
+                width: 300px; 
+                padding: 20px;
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                display: flex; 
+                flex-direction: column; 
+                justify-content: center;
+                align-items: center; 
+            }
+
+            .payment-details h3 {
+                margin-bottom: 15px;
+                font-size: 22px;
+            }
+
+            .payment-details p {
+                font-size: 18px;
+                margin: 10px 0;
+            }
+
+            .place-order-btn {
+                background-color: #28a745;
+                color: white;
+                padding: 12px;
+                border: none;
+                cursor: pointer;
+                text-align: center;
+                width: 200px;
+                font-size: 18px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+            
+            .total-price {
+                font-size: 18px;
+                font-weight: bold;
+                margin-top: 20px;
+            }
+
+            .empty-cart {
+                text-align: center;
+                font-size: 18px;
+                color: #555;
+                margin-top: 20px;
+            }
+
+            .start-shopping {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+
+            .categories-nav {
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            .categories-nav a {
+                margin: 0 15px;
+                text-decoration: none;
+                color: #333;
+            }
+
+            .categories-nav .active {
+                font-weight: bold;
+                color: #007bff;
+            }
+            
+
+            a.order {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #28a745;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 20px;
+                width:80%;
+                text-align: center;
+            }
+
+        </style>
+    </head>
+    <body>
+        <nav class="topnav">
+            <div class="logo">QuickMart</div>
+            <input type="text" id="loc" placeholder="Enter Pincode" maxlength="6">
+            <a class="NavLogo" href="homepg.html">🏠Home</span></a>
+            <input type="text" id="search-bar" placeholder="Search QuickMart" onkeyup="redirectToSearch(event)">
+            <div class="user">
+                <a class="NavLogo" href="login2.html">Login👤</a>
+            </div>
+            <div class="cart">
+                <a class="NavLogo" href="cart2.html">Cart🛒<i class="shopping-cart"></i> <span id="cart-count"></span></a>
+            </div>
+            <div class="nav3" id="menu-toggle">☰</div>
+        </nav>
+        <div id="sidebar">
+            <a href="profile.html" class="sidebar-link">My Profile</a>
+            <a href="myorders.html" class="sidebar-link">My Orders</a>
+            <a href="#" class="sidebar-link" id="logout">Logout</a>
+        </div>
+        <div class="categories-nav">
+            <a href="fruits.html">Fruits & Vegetables</a>
+            <a href="home.html">Home & Kitchen</a>
+            <a href="packaged.html">Packaged Foods</a>
+            <a href="personalcare.html">Personal Care</a>
+        </div>
+        <h2 style="text-align:center;">Your Cart</h2>
+        
+         <div class="container">
+            <div id="cart-container">
+    <div id="cart-items"></div>
+    <div id="cart-summary"></div>
+    
+    <button id="continue-shopping" class="start-shopping" onclick="window.location.href='homepg.html'" style="display: none;">Continue Shopping</button>
+    <button id="place-order" style="display: none;" onclick="window.location.href='checkout.html'">Place Order</button>
+
+</div>
+
+<script>
+$(document).ready(function(){
+    loadCart();
+
+    $(document).on("change", ".cart-qty", function() {
+        let productId = $(this).data("id");
+        let newQty = parseInt($(this).val());
+        updateCart(productId, newQty);
+    });
+
+    $(document).on("click", ".remove-item", function() {
+        let productId = $(this).data("id");
+        removeCartItem(productId);
+    });
+});
+
+function loadCart() {
+    $.get("/cart", function(cartItems) {
+        if (cartItems.length === 0) {
+            $("#cart-items").html("<p> Your cart is empty</p>");
+            $("#continue-shopping").show();
+            $("#place-order").hide();
+            return;
+        }
+        $("#continue-shopping").hide();
+        $("#place-order").show();
+
+        let totalMRP = 0, totalPayable = 0, cartHTML = "<table>";
+        cartHTML += "<tr><th>Image</th><th>Item</th><th>Price</th><th>Quantity</th><th>Total</th><th>Action</th></tr>";
+        cartItems.forEach(item => {
+            let itemTotal = item.price * item.quantity;
+            totalMRP += item.price * item.quantity;
+            totalPayable += itemTotal;
+
+            cartHTML += `
+                <tr>
+                    <td><img src="images/${item.image_url}"></td>
+                    <td>${item.product_name}</td>
+                    <td>₹${item.price}</td>
+                    <td>
+                        <input type="number" class="cart-qty" data-id="${item.product_id}" value="${item.quantity}" min="1" max="${item.stock_quantity}">
+                    </td>
+                    <td>₹${itemTotal}</td>
+                    <td><button class="remove-item" data-id="${item.product_id}">Remove</button></td>
+                </tr>`;
+        });
+
+        cartHTML += "</table>";
+        $("#cart-items").html(cartHTML);
+        $("#cart-summary").html(`<p>Total MRP: ₹${totalMRP}</p><p>Delivery Charge: Free</p><p><b>Total: ₹${totalPayable}</b></p>`);
+    }).fail(function(err) {
+        if (err.status === 401) {
+            alert("Please login to view your cart.");
+            window.location.href = "login2.html";
+        } else {
+            alert("Something went wrong loading the cart.");
+        }
+    });
+}
+
+
+function updateCart(productId, quantity) {
+    $.ajax({
+        url: "/update-cart",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ product_id: productId, quantity }),
+        success: function() {
+            loadCart();
+        },
+        error: function(err) {
+            alert(err.responseJSON.error);
+        }
+    });
+}
+
+function removeCartItem(productId) {
+    $.ajax({
+        url: "/remove-from-cart",
+        type: "DELETE",
+        contentType: "application/json",
+        data: JSON.stringify({ product_id: productId }),
+        success: function() {
+            loadCart();
+        }
+    });
+}
+</script>
+            </div>
+        
+    </body>
+</html>

@@ -1,0 +1,38 @@
+# Node.js dependencies
+node_modules/
+
+# Vercel deployment config
+.vercel/
+
+# Environment variables (secrets, DB URIs, etc.)
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime process data
+pids/
+*.pid
+*.pid.lock
+
+# Editor and IDE folders
+.vscode/
+.idea/
+
+#  OS-generated files
+.DS_Store
+Thumbs.db
+
+# Build and cache folders 
+dist/
+build/
+.cache/
+coverage/
+.nyc_output/
+
+# Yarn lock 
+yarn.lock
+

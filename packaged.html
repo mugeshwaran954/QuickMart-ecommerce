@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <title>Packaged foods</title>
+        <link rel="stylesheet" href="cat.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="temp.js"></script>
+    </head>
+    <body>
+        <div><nav class="topnav">
+            <div class="logo">QuickMart</div>
+            <input type="text" id="loc" placeholder="Enter Pincode" maxlength="6">
+            <a class="NavLogo" href="homepg.html">🏠Home</span></a>
+            <input type="text" id="search-bar" placeholder="Search QuickMart" onkeyup="redirectToSearch(event)">
+            <div class="user">
+                <a class="NavLogo" href="login2.html">Login👤</a>
+            </div>
+            <div class="cart">
+                <a class="NavLogo" href="cart2.html">Cart🛒<i class="shopping-cart"></i> <span id="cart-count"></span></a>
+            </div>
+            <div class="nav3" id="menu-toggle">☰</div>
+        </nav>
+        <div id="sidebar">
+            <a href="profile.html" class="sidebar-link">My Profile</a>
+            <a href="myorders.html" class="sidebar-link">My Orders</a>
+            <a href="#" class="sidebar-link" id="logout">Logout</a>
+        </div>
+        </div>
+        <div class="categories-nav">
+            <a href="fruits.html">Fruits & Vegetables</a>
+            <a href="home.html">Home & Kitchen</a>
+            <a href="packaged.html"class="active">Packaged Foods</a>
+            <a href="personalcare.html">Personal Care</a>
+        </div></div>
+        <div class="container">
+        <div class="sidebar">
+                <b>Filter by:</b><br>
+                All Products<input type="checkbox" id="all-products" class="category" checked><br>
+                Frozen foods<input type="checkbox" class="category" value="Frozen foods" name="Frozen foods"><br>
+                Biscuits and cookies<input type="checkbox" class="category" value="Biscuits and Cookies" name="Biscuits and Cookies"><br>
+                Drinks and Juices<input type="checkbox" class="category" value="Drinks and Juices" name="Drinks and Juices"><br>
+                Breakfast Cereals<input type="checkbox" class="category" value="Breakfast Cereals" name="Breakfast Cereals"><br>
+                Ready foods<input type="checkbox" class="category" value="Ready foods" name="Ready foods"><br><br>
+            <b>Sort by:</b><br>
+            <select id="sort-price">
+                <option value="asc">Price: Low to High</option>
+                <option value="desc">Price: High to Low</option>
+            </select>
+        </div>
+        <div class="products">
+            
+        </div>
+    </div>
+    </body>
+</html>

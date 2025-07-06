@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Forgot Password - QuickMart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f8f8;
+            margin: 0;
+        }
+
+        .container {
+            width: 400px;
+            height:450px;
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid black;
+            display: none;
+        }
+
+        h1 {
+            color: rgb(6,147,65);
+        }
+
+        h2 {
+            font-size: 25px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #aaa;
+            font-size: 15px;
+        }
+
+        button{
+            width: 70%;
+            padding: 10px;
+            background: rgb(6,147,65);
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 100px;
+        }
+
+        .btn3{
+            width: 70%;
+            padding: 10px;
+            background: rgb(6,147,65);
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 50px;
+        }
+
+        
+        button:hover {
+            background-color: rgb(159, 217, 183);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        form .input-field {
+    flex-direction: row;
+    column-gap: 10px;
+  }
+  .input-field input {
+    height: 40px;
+    width: 40px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 1.125rem;
+    text-align: center;
+    border: 1px solid black;
+  }
+  .input-field input:focus {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  }
+  .input-field input::-webkit-inner-spin-button,
+  .input-field input::-webkit-outer-spin-button {
+    display: none;
+  }
+
+  .toggle-icon1{
+    position: absolute;
+    right: 15px;
+    top: 20%;
+    transform: translateY(-50%);
+    width: 35px;
+    cursor: pointer;
+}
+.toggle-icon2{
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 35px;
+    cursor: pointer;
+}
+
+        .input-container {
+            position: relative;
+            width: 90%;
+            margin: auto;
+        }
+
+        .rese {
+            color: #0066c0;
+            text-decoration: none;
+        }
+
+        .rese:hover {
+            text-decoration: underline;
+        }
+
+        .password-info1{
+    font-size: 15px;
+    color: gray;
+    margin-top: 0px;
+    margin-right: 60px;
+}
+.password-info2{
+    font-size: 15px;
+    color: gray;
+    margin-top: 0px;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.error {
+            color: red;
+            font-size: 14px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>QuickMart</h1>
+
+    <div class="container" id="step1">
+        <h2>Forgot Password</h2><br><br><br><br>
+        <form id="forgot-form">
+            <input type="text" id="email" placeholder="Email ID " required>
+            <button type="submit">Continue</button>
+        </form>
+    </div>
+
+    <div class="container" id="step2">
+        <h2>OTP</h2>
+        <p>Enter the verification code sent to your Email ID</p>
+        <form id="otp-form">
+            <div class="input-field">
+                <input type="text" maxlength="1" class="otp-input" required>
+                <input type="text" maxlength="1" class="otp-input" disabled required>
+                <input type="text" maxlength="1" class="otp-input" disabled required>
+                <input type="text" maxlength="1" class="otp-input" disabled required>
+            </div>
+            <p>Didn't receive the code? <a href="#" class="rese" id="resend-btn">Resend</a></p>
+            <button type="submit" id="verify-btn" disabled>Verify</button>
+        </form>
+    </div>
+
+    <div class="container" id="step3">
+        <h2>Reset Password</h2>
+        <form id="reset-form">
+            <div class="input-container">
+                <input type="password" id="password" placeholder="Password" required>
+                <p class="password-info1">Passwords must be at least 8 characters.</p>
+                    <p class="password-info2">Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.</p>
+                    <img src="images/pass_show.jpg" alt="Show Password" id="toggleIcon1" class="toggle-icon1" onclick="togglePassword1()">
+            </div>
+            <div class="input-container">
+                <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                <img src="images/pass_show.jpg" alt="Show Password" id="toggleIcon2" class="toggle-icon2" onclick="togglePassword2()">
+            </div>
+            <p id="error-message" class="error"></p> 
+            <button class="btn3" type="submit">Confirm</button>
+        </form>
+    </div>
+
+    <script>
+        // Step Navigation
+        const step1 = document.getElementById("step1");
+        const step2 = document.getElementById("step2");
+        const step3 = document.getElementById("step3");
+
+        step1.style.display = "block";
+
+    
+        const errorMessage = document.getElementById("error-message");
+
+
+        document.getElementById("forgot-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const input = document.getElementById("email").value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(input)) {
+                alert("Enter a valid email address.");
+                return;
+            }
+
+            step1.style.display = "none";
+            step2.style.display = "block";
+        });
+
+        const inputs = document.querySelectorAll(".otp-input");
+        const verifyBtn = document.getElementById("verify-btn");
+        const resendBtn = document.getElementById("resend-btn");
+
+        function isOtpComplete() {
+            return [...inputs].every(input => input.value.trim() !== "");
+        }
+
+        inputs.forEach((input, index) => {
+            input.addEventListener("input", (e) => {
+                input.value = input.value.replace(/[^0-9]/g, "");
+                if (input.value && index < inputs.length - 1) {
+                    inputs[index + 1].removeAttribute("disabled");
+                    inputs[index + 1].focus();
+                }
+                verifyBtn.disabled = !isOtpComplete();
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        document.getElementById("otp-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (isOtpComplete()) {
+                alert("OTP Verified Successfully");
+                step2.style.display = "none";
+                step3.style.display = "block";
+            } else {
+                alert("Please complete the OTP");
+            }
+        });
+
+        resendBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            alert("OTP resent!");
+            location.reload();
+        });
+
+        function togglePassword1() {
+            const password = document.getElementById("password");
+            password.type = password.type === "password" ? "text" : "password";
+        }
+
+        function togglePassword2() {
+            const confirm = document.getElementById("confirm-password");
+            confirm.type = confirm.type === "password" ? "text" : "password";
+        }
+
+        document.getElementById("reset-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            errorMessage.textContent = ""; 
+
+            const password = document.getElementById("password").value.trim();
+            const confirmPassword = document.getElementById("confirm-password").value.trim();
+            const email = document.getElementById("email").value.trim();
+
+            let passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{}|]).{8,}$/;
+
+            if ( !password || !confirmPassword) {
+                errorMessage.textContent = "All fields are required";
+                return;
+            }
+
+            if (password.length < 8) {
+                errorMessage.textContent = "Password must be at least 8 characters long";
+                return;
+            }
+
+           if (password.length > 128) {
+                errorMessage.textContent = "Password must not exceed 128 characters";
+                return;
+           }
+            if (!passwordRegex.test(password)) {
+                errorMessage.textContent = "Password must include at least one uppercase, one lowercase, one number and one special character";
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:5000/reset-password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, newPassword: password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("Password reset successful.you can now login");
+                    window.location.href = "login.html"; 
+                }else {
+                    errorMessage.textContent = result.error;
+                }
+            } catch (error) {
+                errorMessage.textContent = "Error.Password is the same as old one";
+            }
+        });
+    </script>
+</body>
+</html>

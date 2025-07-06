@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout</title>
+  <style>
+   body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.checkout-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #343a40;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #495057;
+}
+
+.total-amount {
+    text-align: right;
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #212529;
+}
+
+.user-info {
+    margin-top: 30px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #343a40;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    color: #495057;
+}
+
+.checkout-buttons {
+    text-align: right;
+}
+
+button {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+@media screen and (max-width: 600px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .checkout-buttons {
+        text-align: center;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <h1>Checkout</h1>
+  <div id="cartItems"></div>
+  <h3 id="totalAmount">Total: ₹0</h3>
+
+  <h2>Shipping Details</h2>
+  <div class="input-group">
+    <label>Name: <input type="text" id="name" /></label>
+  </div>
+  <div class="input-group">
+    <label>Address: <input type="text" id="address" /></label>
+  </div>
+  <div class="input-group">
+    <label>Phone: <input type="text" id="phone" maxlength="10"/></label>
+  </div>
+  <div class="input-group">
+    <label><input type="checkbox" id="setDefault" /> Set as default</label>
+  </div>
+  <p id="statusMsg"></p>
+  <button onclick="placeOrder()">Proceed to Payment</button>
+
+  <script>
+  window.onload = async function () {
+    try {
+      const res = await fetch("/checkout");
+      if (res.status === 401) {
+        alert("Please login to access checkout.");
+        return;
+      }
+
+      const data = await res.json();
+      const cartContainer = document.getElementById("cartItems");
+      const totalAmount = document.getElementById("totalAmount");
+
+      if (data.cart && data.cart.length > 0) {
+        cartContainer.innerHTML = "";
+        let total = 0;
+
+        data.cart.forEach(item => {
+          const subtotal = item.quantity * item.price;
+          total += subtotal;
+
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "cart-item";
+          itemDiv.innerHTML = `
+            <span>${item.product_name}</span>
+            Quantity: ${item.quantity} | Price: ₹${item.price} | Subtotal: ₹${subtotal}
+          `;
+          cartContainer.appendChild(itemDiv);
+        });
+
+        totalAmount.textContent = `Total: ₹${total}`;
+      } else {
+        cartContainer.innerHTML = "<p>No items in cart.</p>";
+        totalAmount.textContent = `Total: ₹0`;
+      }
+
+      if (data.customer) {
+        document.getElementById("name").value = data.customer.name || "";
+        document.getElementById("address").value = data.customer.address || "";
+        document.getElementById("phone").value = data.customer.phone || "";
+      }
+
+    } catch (error) {
+      console.error("Error loading checkout:", error);
+      document.getElementById("totalAmount").textContent = `Total: ₹0`;
+    }
+  };
+
+  document.getElementById("setDefault").addEventListener("change", async function () {
+    const msg = document.getElementById("statusMsg");
+
+    if (this.checked) {
+      const name = document.getElementById("name").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+
+      if (!name || !address || !phone) {
+        msg.textContent = "Please fill in all fields before saving.";
+        msg.style.color = "red";
+        return;
+      }
+
+      if (!/^[A-Z][a-zA-Z ]{1,49}$/.test(name)) {
+        msg.textContent = "Name must be 2–50 alphabetic characters.";
+        msg.style.color = "red";
+        return;
+      }
+
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        msg.textContent = "Phone must start with 6/7/8/9 and be 10 digits.";
+        msg.style.color = "red";
+        return;
+      }
+
+      if (!/^.+(,.+)*\s*Chennai-600[01]\d{2}$/.test(address)) {
+        msg.textContent = "Address must end with Chennai-6001xx or 6000xx.";
+        msg.style.color = "red";
+        return;
+      }
+
+      try {
+        const response = await fetch("/update-address", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, address, phone })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          msg.textContent = "Saved default address!";
+          msg.style.color = "green";
+        } else {
+          msg.textContent = result.error || "Failed to save.";
+          msg.style.color = "red";
+        }
+      } catch (error) {
+        msg.textContent = "Server error.";
+        msg.style.color = "red";
+      }
+    }
+  });
+
+  async function placeOrder() {
+    try {
+      const name = document.getElementById("name").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const setDefault = document.getElementById("setDefault").checked;
+
+      if (!name || !address || !phone) {
+        alert("All fields are required.");
+        return;
+      }
+
+      if (!/^[A-Z][a-zA-Z ]{1,49}$/.test(name)) {
+        alert("Name must be 2–50 alphabetic characters.");
+        return;
+      }
+
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        alert("Phone must start with 6/7/8/9 and be 10 digits.");
+        return;
+      }
+
+      if (!/^.+(,.+)*\s*Chennai-600[01]\d{2}$/.test(address)) {
+        alert("Address must end with Chennai-6001xx or 6000xx.");
+        return;
+      }
+
+      const res = await fetch("/place-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ address, phone, setDefault })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Proceeding to payment");
+        window.location.href = `payment.html?order_id=${data.order_id}`;
+      } else {
+        alert(data.error || "Order failed.");
+      }
+    } catch (err) {
+      alert("Something went wrong.");
+    }
+  }
+</script>
+</body>
+</html>
